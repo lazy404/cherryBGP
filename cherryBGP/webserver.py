@@ -37,28 +37,26 @@ class CherryBGPStatus(object):
             
             $.get('/status', function(data) {
               
-              var transform= {"tag":"div","id":"${id}","children":[
+            var transform= {"tag":"div","children":[
                   {"tag":"span","html":"Peer: ${peer}"},
-                  {"tag":"span","html":"Status: ${status}"}
-                ]};
-            $('#sessions').html('');
-            $('#sessions').json2html(data, transform, {'replace': true});
+                  {"tag":"span","html":"Status: ${status}"}]};
+            
+            $('#sessions').html(json2html.transform(data, transform));
             setTimeout(status_worker, 5000);
           });
         })();
         
         (function routes_worker() {
           $.get('/routes', function(data) {
-            var transform = {"tag":"tbody","id":"${id}","children":[
-                            {"tag":"tr","children":[
+            var transform =   {"tag":"tr","children":[
                                 {"tag":"td","html":"${dst}"},
                                 {"tag":"td","html":"${typ}"},
                                 {"tag":"td","html":"${created}"},
                                 {"tag":"td","html":"${ttl}"}
-                              ]}
-                          ]};
-            $("#routes").html('');
-            $('#routes').json2html(data, transform, {'replace': true});
+                              ]};
+            $('#routes').html(json2html.transform(data, transform));
+            //$('#routes').json2html(data, transform, {'replace': true});
+            
             setTimeout(routes_worker, 2000);
           });
         })();
