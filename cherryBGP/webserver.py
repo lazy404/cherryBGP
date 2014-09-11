@@ -1,18 +1,25 @@
 #
 # encoding: UTF-8
 
-import os, time
+import os, time, xmlrpclib
 import cherrypy
 
 table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999}, {'dst': '10.2.10.2/32', 'typ': 'pl', 'created': 19999, 'ttl':19999},]
 
 class CherryBGPStatus(object):
+    
+    def __init__(self, rpc_url):
+        self.rpc_url=rpc_url
+        self.rpc=xmlrpclib.ServerProxy(rpc_url)
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
+    @cherrypy.tools.allow(methods=['GET'])
     def status(self):
         return [{'peer':'10.0.2.2', 'status': 'Online'}, {'peer': '10.0.2.1', 'status': 'Down'}]
         
     @cherrypy.expose
+    @cherrypy.tools.allow(methods=['GET'])
     def index(self):
         return r'''<html>
     <head>
@@ -58,7 +65,7 @@ class CherryBGPStatus(object):
         $("#blform").submit(function() {
             // post the form values via AJAX…
             var postdata = {dst: $("#dst").val(), ttl: $("#ttl").val(), typ: $("#typ").val()} ;
-            $.post('/routes', postdata, function(data) {
+            $.post('/set_route', postdata, function(data) {
                 $("#last_command").html(data['log']);
 
                 if(data['status'] == 'ok')
@@ -68,7 +75,7 @@ class CherryBGPStatus(object):
             return false ;
             });
         });
-        
+/*
         (function status_worker() {
             
             $.get('/status', function(data) {
@@ -81,8 +88,11 @@ class CherryBGPStatus(object):
             setTimeout(status_worker, 5000);
           });
         })();
-        
+*/
+
         (function routes_worker() {
+            setTimeout(routes_worker, 4000);
+
           $.get('/routes', function(data) {
             var transform =   {"tag":"tr","children":[
                                 {"tag":"td","html":"${dst}"},
@@ -93,14 +103,13 @@ class CherryBGPStatus(object):
             $('#routes').html(json2html.transform(data, transform));
             //$('#routes').json2html(data, transform, {'replace': true});
             
-            setTimeout(routes_worker, 2000);
           });
         })();
         
     </script>
     </head>
         <body>
-        <div id="sessions">Status Unknown</div>
+        <!-- <div id="sessions">Status Unknown</div> -->
         Active blackhole routes:
         <table>
         <tr><th>Destination</th><th>Type</th><th>Created</th><th>Ttl</th></tr>
@@ -114,14 +123,15 @@ class CherryBGPStatus(object):
             <input type="text" id="dst" /> <br />
             <label for="typ">Typ:</label>
             <select id=typ>
-              <option value="global">Zagranica</option>
-              <option value="all">Wszystko</option>
+              <option value="47544:666 555:333">Zagranica</option>
+              <option value="47544:666 123:666">Wszystko</option>
             </select></br>
             <label for="typ">TTL:</label>
             <select id=ttl>
               <option value="60">1 minute</option>
               <option value="180">3 munutes</option>
               <option value="600">10 munutes</option>
+              <option value="0">Remove</option>
             </select></br>
 
             <input type="submit" value="Set" />
@@ -133,34 +143,48 @@ class CherryBGPStatus(object):
         </body>
     </html>'''
 
-class CherryBGPWebService(object):
-    exposed = True
-
+    @cherrypy.expose
     @cherrypy.tools.json_out()
-    def GET(self):
-        global table
+    @cherrypy.tools.allow(methods=['GET'])
+    def routes(self):
+        table = []
+        #'neighbor 86.111.240.24 10.11.11.11/32 next-hop 10.0.200.1\n'
+        #table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999}, {'dst': '10.2.10.2/32', 'typ': 'pl', 'created': 19999, 'ttl':19999},]
+
+        self.rpc.write('show routes\n')
+        time.sleep(0.5)
+        ret=self.rpc.read()
+        print ret
+        for l in ret.split('\n'):
+            if l:
+                (dummy, neighbor, dst, dummy, nh)=l.split(' ')
+                table.append({'dst':dst, 'typ': 'global', 'ttl':199})
         print table
         return table
         
+    @cherrypy.expose
     @cherrypy.tools.json_out()
-    def POST(self, dst, typ, ttl):
-        global table
-        table.append({'dst': str(dst), 'typ': str(typ), 'created': int(time.time()), 'ttl':int(ttl)})
+    @cherrypy.tools.allow(methods=['POST'])
+    def set_route(self, dst, typ, ttl):
+        try:
+            ttl=int(ttl)
+            if ttl > 0 :
+                cmd='announce route %s next-hop 10.0.200.1 community [%s]\n' % (dst, typ)
+            else:
+                cmd='withdraw route %s next-hop 10.0.200.1 community [%s]\n' % (dst, typ)
+                #cmd='withdraw route %s next-hop 10.0.200.1\n' % (dst)
+                
+            print cmd
+            self.rpc.write(cmd)
+        except Exception as e:
+            return {'status': 'error', 'log': str(e)}
 
-        
-        return {'status': 'ok', 'log': 'route %s added successfully' % dst}
+        return {'status': 'ok', 'log': 'route %s sent' % dst}
         #return {'status': 'error', 'log': 'route %s added unsuccessfully' % dst}
-        
-    def DELETE(self):
-        global string
-        string=""
+ 
 
 if __name__ == '__main__':
     conf = {
-     '/routes': {
-         'request.dispatch': cherrypy.dispatch.MethodDispatcher(),
-         'tools.response_headers.on': True,
-     },
      '/static': {
          'tools.staticdir.on': True,
          'tools.staticdir.dir': './static',
@@ -168,6 +192,6 @@ if __name__ == '__main__':
      }
     }
     
-    webroot=CherryBGPStatus()
-    webroot.routes=CherryBGPWebService()
-    cherrypy.quickstart(webroot, '/', conf)
+    #webroot=CherryBGPStatus()
+    #webroot.routes=CherryBGPWebService()
+    cherrypy.quickstart(CherryBGPStatus('http://86.111.240.24:8000/'), '/', conf)
