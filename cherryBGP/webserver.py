@@ -3,6 +3,7 @@
 
 import os, time, xmlrpclib
 import cherrypy
+import config
 
 table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999}, {'dst': '10.2.10.2/32', 'typ': 'pl', 'created': 19999, 'ttl':19999},]
 
@@ -194,4 +195,4 @@ if __name__ == '__main__':
     
     #webroot=CherryBGPStatus()
     #webroot.routes=CherryBGPWebService()
-    cherrypy.quickstart(CherryBGPStatus('http://86.111.240.24:8000/'), '/', conf)
+    cherrypy.quickstart(CherryBGPStatus(config.rpc_url), '/', conf)
