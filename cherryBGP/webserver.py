@@ -1,11 +1,9 @@
 #
 # encoding: UTF-8
 
-import os, time, xmlrpclib
+import os, time, xmlrpclib, ipaddr
 import cherrypy
 import config
-
-table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999}, {'dst': '10.2.10.2/32', 'typ': 'pl', 'created': 19999, 'ttl':19999},]
 
 class CherryBGPStatus(object):
     
@@ -124,8 +122,8 @@ class CherryBGPStatus(object):
             <input type="text" id="dst" /> <br />
             <label for="typ">Typ:</label>
             <select id=typ>
-              <option value="47544:666 555:333">Zagranica</option>
-              <option value="47544:666 123:666">Wszystko</option>
+              <option value="Zagranica">Zagranica</option>
+              <option value="Global">Wszystko</option>
             </select></br>
             <label for="typ">TTL:</label>
             <select id=ttl>
@@ -150,8 +148,9 @@ class CherryBGPStatus(object):
     def routes(self):
         table = []
         #'neighbor 86.111.240.24 10.11.11.11/32 next-hop 10.0.200.1\n'
-        #table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999}, {'dst': '10.2.10.2/32', 'typ': 'pl', 'created': 19999, 'ttl':19999},]
+        #table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999},]
 
+        #TODO: implement proper rpc function write + select + read
         self.rpc.write('show routes\n')
         time.sleep(0.5)
         ret=self.rpc.read()
@@ -168,14 +167,13 @@ class CherryBGPStatus(object):
     @cherrypy.tools.allow(methods=['POST'])
     def set_route(self, dst, typ, ttl):
         try:
+            dst=str(ipaddr.IPAddress(dst))
             ttl=int(ttl)
             if ttl > 0 :
-                cmd='announce route %s next-hop 10.0.200.1 community [%s]\n' % (dst, typ)
+                cmd='announce route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, config.community_map[typ])
             else:
-                cmd='withdraw route %s next-hop 10.0.200.1 community [%s]\n' % (dst, typ)
-                #cmd='withdraw route %s next-hop 10.0.200.1\n' % (dst)
+                cmd='withdraw route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, config.community_map[typ])
                 
-            print cmd
             self.rpc.write(cmd)
         except Exception as e:
             return {'status': 'error', 'log': str(e)}
@@ -183,7 +181,6 @@ class CherryBGPStatus(object):
         return {'status': 'ok', 'log': 'route %s sent' % dst}
         #return {'status': 'error', 'log': 'route %s added unsuccessfully' % dst}
  
-
 if __name__ == '__main__':
     conf = {
      '/static': {
