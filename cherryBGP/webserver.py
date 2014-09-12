@@ -151,9 +151,7 @@ class CherryBGPStatus(object):
         #table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999},]
 
         #TODO: implement proper rpc function write + select + read
-        self.rpc.write('show routes\n')
-        time.sleep(0.5)
-        ret=self.rpc.read()
+        ret=self.rpc.api_call('show routes\n')
         print ret
         for l in ret.split('\n'):
             if l:
@@ -174,7 +172,7 @@ class CherryBGPStatus(object):
             else:
                 cmd='withdraw route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, config.community_map[typ])
                 
-            self.rpc.write(cmd)
+            self.rpc.api_call_noret(cmd)
         except Exception as e:
             return {'status': 'error', 'log': str(e)}
 
