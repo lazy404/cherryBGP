@@ -17,7 +17,7 @@ def api_call(cmd):
     sys.stdout.flush()
     r,_,_ = select([sys.stdin], [], [], 1.0)
     if r:
-	return read(sys.stdin.fileno(), 4096)
+	    return read(sys.stdin.fileno(), 4096)
     return ''
 
 def api_call_noret(cmd):
