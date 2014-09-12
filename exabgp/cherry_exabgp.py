@@ -15,6 +15,7 @@ def api_call(cmd):
 
     sys.stdout.write(cmd)
     sys.stdout.flush()
+    time.sleep(0.1)
     r,_,_ = select([sys.stdin], [], [], 1.0)
     if r:
 	    return read(sys.stdin.fileno(), 4096)
