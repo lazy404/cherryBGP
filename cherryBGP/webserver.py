@@ -1,7 +1,7 @@
 #
 # encoding: UTF-8
 
-import os, time, xmlrpclib, ipaddr
+import os, time, xmlrpclib, ipaddr, exceptions, traceback
 import cherrypy
 import config
 
@@ -186,11 +186,14 @@ class CherryBGPStatus(object):
             dst=kw['dst']
             typ=kw['typ[]']
             dst=str(ipaddr.IPAddress(dst))
-
+            print '  ***************** typ', typ, type(typ)
+            if type(typ) != list:
+                typ=[typ]
             cmd='announce route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, txt_to_nr(map(str, typ)))
 
             self.rpc.api_call_noret(cmd)
         except Exception as e:
+            print traceback.format_exc()
             return {'status': 'error', 'log': str(e)}
 
         return {'status': 'ok', 'log': 'route %s sent ' % cmd}
