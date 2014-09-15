@@ -26,11 +26,16 @@ class CherryBGPStatus(object):
     <head>
         <title>AJAX with jQuery and cherrypy</title>
         <style type="text/css"><!--
-        body { font-family: arial, helvetica, sans-serif; font-size: 12px; font-weight: normal; color: black; background: white;}
-        th,td { font-size: 16px;}
+        body { font-family: arial, helvetica, sans-serif; font-size: 12px; font-weight: normal; color: black; background: #a0bbc0;}
+        th,td { font-size: 14px;}
+        div, label { font-size: 14px;}
+        
+        a {text-decoration: none;}
+        th {background: #e8e8d0;}
+        td {background: #c0ffc0;}
         h1 { font-size: x-large; margin-bottom: 0.5em;}
         h2 { font-family: helvetica, arial; font-size: x-large; font-weight: bold; font-style: italic; color: #6020a0; margin-top: 0em; margin-bottom: 0em;}
-        h3 { font-family: helvetica, arial; font-size: 16px; font-weight: bold; color: #b00040; background: #e8e8d0; margin-top: 0em; margin-bottom: 0em;}
+        h3 { font-family: helvetica, arial; font-size: 16px; font-weight: bold; color: #6020a0; background: #e8e8d0; margin-top: 0em; margin-bottom: 0em;}
         li { margin-top: 0.25em; margin-right: 2em;}
         .hr {margin-top: 0.25em; border-color: black; border-bottom-style: solid;}
         .titre	{background: #20D0D0;color: #000000; font-weight: bold; text-align: center;}
@@ -139,23 +144,23 @@ class CherryBGPStatus(object):
     </head>
         <body>
         <!-- <div id="sessions">Status Unknown</div> -->
-        Active blackhole routes:
+        <h2 class="red">Active blackhole routes:</h2>
         <table>
         <tr><th>Destination</th><th>Type</th><th>Community</th><th>Action</th></tr>
         <tbody id="routes">
         </tbody>
-        </table><br/>
-        Inject blackhole:
+        </table><br/><br/>
+        <h3>Inject blackhole routes:</h2>
         <form id="blform" action="#" method="post">
-            <p>
-            <label for="dst">Name:</label>
-            <input type="text" id="dst" /> <br />
-            <label for="typ">Typ:</label>
+            <input type="text" id="dst" />
+            <label for="dst">- IP</label><br/>
+            
             <select id=typ multiple>
               %s
-            </select></br>
-            <input type="submit" value="Set" />
-            </p>
+            </select>
+            <label for="typ">- Blackholle types</label><br />
+            
+            <input type="submit" value="Announce"/>
         </form>
 
         <div id="last_command"></div><br>
