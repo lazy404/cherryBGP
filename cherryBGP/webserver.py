@@ -93,7 +93,11 @@ class CherryBGPStatus(object):
           });
         })();
         <tr>
-        <td>${dst}</td><td>${typ}</td><td><a class="del" href="/dele/${dst}">Remove</a></td>
+        <td>${dst}</td><td>${typ}</td><td><td>${community}</td><a class="del" href="/dele/${dst}">Remove</a></td>
+        </tr>
+        
+        <tr>
+        <td>${dst}</td><td>${typ}</td><td>${community}</td><td><a class="del" ref="/dele/${dst}">Remove</a></td>
         </tr>
         
 */
@@ -102,13 +106,14 @@ class CherryBGPStatus(object):
             setTimeout(routes_worker, 4000);
 
           $.get('/routes', function(data) {
-            var transform =   {"tag":"tr","children":[
-                {"tag":"td","html":"${dst}"},
-                {"tag":"td","html":"${typ}"},
-                {"tag":"td","children":[
-                {"tag":"a","class":"del","href":"/dele/${dst}","html":"Remove"}
-                    ]}
-                ]};
+            var transform ={"tag":"tr","children":[
+    {"tag":"td","html":"${dst}"},
+    {"tag":"td","html":"${typ}"},
+    {"tag":"td","html":"${community}"},
+    {"tag":"td","children":[
+        {"tag":"a","class":"del","href":"/dele/${dst}","html":"Remove"}
+      ]}
+  ]};
             $('#routes').html(json2html.transform(data, transform));
             //$('#routes').json2html(data, transform, {'replace': true});
             
@@ -123,6 +128,7 @@ class CherryBGPStatus(object):
                         $("#last_command").html(data['log']);
                        });
                 }
+                
                 return false; // return false so that we don't follow the link!
             });
             
@@ -135,7 +141,7 @@ class CherryBGPStatus(object):
         <!-- <div id="sessions">Status Unknown</div> -->
         Active blackhole routes:
         <table>
-        <tr><th>Destination</th><th>Type</th><th>Action</th></tr>
+        <tr><th>Destination</th><th>Type</th><th>Community</th><th>Action</th></tr>
         <tbody id="routes">
         </tbody>
         </table><br/>
@@ -174,7 +180,7 @@ class CherryBGPStatus(object):
                 rt=l.split()
                 com=rt.index('community') + 1
                 dst=rt.index('next-hop') - 1
-                table.append({'dst':rt[dst].split('/')[0], 'typ': nr_to_txt(rt[com:])})
+                table.append({'dst':rt[dst].split('/')[0], 'typ': nr_to_txt(rt[com:]), 'community': ' '.join(rt[com:])})
         print table
         return table
         
@@ -189,6 +195,7 @@ class CherryBGPStatus(object):
             print '  ***************** typ', typ, type(typ)
             if type(typ) != list:
                 typ=[typ]
+            
             cmd='announce route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, txt_to_nr(map(str, typ)))
 
             self.rpc.api_call_noret(cmd)

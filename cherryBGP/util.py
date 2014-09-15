@@ -9,6 +9,7 @@ def all_in(a, b):
 
 def nr_to_txt(cm):
     print 'nr to txt', cm
+
     ret=[]
     for name, community in community_map.items():
         if all_in(community, cm):
