@@ -5,6 +5,8 @@ import os, time, xmlrpclib, ipaddr
 import cherrypy
 import config
 
+from util import *
+
 class CherryBGPStatus(object):
     
     def __init__(self, rpc_url):
@@ -59,6 +61,7 @@ class CherryBGPStatus(object):
         <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
         <script type="text/javascript" src="/static/json2html.js"></script>
         <script type="text/javascript" src="/static/jquery.json2html.js"></script>
+
     <script type="text/javascript">
         $(function() {
         $("#blform").submit(function() {
@@ -74,6 +77,8 @@ class CherryBGPStatus(object):
             return false ;
             });
         });
+        
+
 /*
         (function status_worker() {
             
@@ -87,6 +92,10 @@ class CherryBGPStatus(object):
             setTimeout(status_worker, 5000);
           });
         })();
+        <tr>
+        <td>${dst}</td><td>${typ}</td><td><a class="del" href="/dele/${dst}">Remove</a></td>
+        </tr>
+        
 */
 
         (function routes_worker() {
@@ -94,13 +103,28 @@ class CherryBGPStatus(object):
 
           $.get('/routes', function(data) {
             var transform =   {"tag":"tr","children":[
-                                {"tag":"td","html":"${dst}"},
-                                {"tag":"td","html":"${typ}"},
-                                {"tag":"td","html":"${created}"},
-                                {"tag":"td","html":"${ttl}"}
-                              ]};
+                {"tag":"td","html":"${dst}"},
+                {"tag":"td","html":"${typ}"},
+                {"tag":"td","children":[
+                {"tag":"a","class":"del","href":"/dele/${dst}","html":"Remove"}
+                    ]}
+                ]};
             $('#routes').html(json2html.transform(data, transform));
             //$('#routes').json2html(data, transform, {'replace': true});
+            
+            //$("#last_command").html('');
+            
+            $(".del").click(function() {
+                var del_dst = this.href.slice(this.href.lastIndexOf('/')+1);
+                if (confirm('Are you sure you want to remove: '+del_dst+' ?')) {
+                    // Save it!
+                    var postdata = {dst: del_dst} ;
+                    $.post('/del_route', postdata, function(data) {
+                        $("#last_command").html(data['log']);
+                       });
+                }
+                return false; // return false so that we don't follow the link!
+            });
             
           });
         })();
@@ -111,7 +135,7 @@ class CherryBGPStatus(object):
         <!-- <div id="sessions">Status Unknown</div> -->
         Active blackhole routes:
         <table>
-        <tr><th>Destination</th><th>Type</th><th>Created</th><th>Ttl</th></tr>
+        <tr><th>Destination</th><th>Type</th><th>Action</th></tr>
         <tbody id="routes">
         </tbody>
         </table><br/>
@@ -121,18 +145,9 @@ class CherryBGPStatus(object):
             <label for="dst">Name:</label>
             <input type="text" id="dst" /> <br />
             <label for="typ">Typ:</label>
-            <select id=typ>
-              <option value="Zagranica">Zagranica</option>
-              <option value="Global">Wszystko</option>
+            <select id=typ multiple>
+              %s
             </select></br>
-            <label for="typ">TTL:</label>
-            <select id=ttl>
-              <option value="60">1 minute</option>
-              <option value="180">3 munutes</option>
-              <option value="600">10 munutes</option>
-              <option value="0">Remove</option>
-            </select></br>
-
             <input type="submit" value="Set" />
             </p>
         </form>
@@ -140,7 +155,7 @@ class CherryBGPStatus(object):
         <div id="last_command"></div><br>
         
         </body>
-    </html>'''
+    </html>''' % '\n'.join(['<option value="%s">%s</option>' % (t, t) for t in config.community_map.keys()])
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -151,43 +166,62 @@ class CherryBGPStatus(object):
         #table = [{'dst': '10.2.2.2/32', 'typ': 'global', 'created': 19999, 'ttl':19999},]
 
         #TODO: implement proper rpc function write + select + read
-        ret=self.rpc.api_call('show routes\n')
+        ret=self.rpc.api_call('show routes extensive\n')
+        #ret=self.rpc.api_call('show routes\n')
         print ret
         for l in ret.split('\n'):
             if l:
-                (dummy, neighbor, dst, dummy, nh)=l.split(' ')
-                table.append({'dst':dst, 'typ': 'global', 'ttl':199})
+                rt=l.split()
+                com=rt.index('community') + 1
+                dst=rt.index('next-hop') - 1
+                table.append({'dst':rt[dst].split('/')[0], 'typ': nr_to_txt(rt[com:])})
         print table
         return table
         
     @cherrypy.expose
     @cherrypy.tools.json_out()
     @cherrypy.tools.allow(methods=['POST'])
-    def set_route(self, dst, typ, ttl):
+    def set_route(self, **kw):
         try:
+            dst=kw['dst']
+            typ=kw['typ[]']
             dst=str(ipaddr.IPAddress(dst))
-            ttl=int(ttl)
-            if ttl > 0 :
-                cmd='announce route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, config.community_map[typ])
-            else:
-                cmd='withdraw route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, config.community_map[typ])
-                
+
+            cmd='announce route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, txt_to_nr(map(str, typ)))
+
             self.rpc.api_call_noret(cmd)
         except Exception as e:
             return {'status': 'error', 'log': str(e)}
 
-        return {'status': 'ok', 'log': 'route %s sent' % dst}
-        #return {'status': 'error', 'log': 'route %s added unsuccessfully' % dst}
- 
+        return {'status': 'ok', 'log': 'route %s sent ' % cmd}
+
+    @cherrypy.expose
+    @cherrypy.tools.json_out()
+    @cherrypy.tools.allow(methods=['POST'])
+    def del_route(self, dst):
+        try:
+            dst=str(ipaddr.IPAddress(dst))
+            cmd='withdraw route %s/32 next-hop 10.0.200.1\n' % (dst)
+            self.rpc.api_call_noret(cmd)
+        except Exception as e:
+            return {'status': 'error', 'log': str(e)}
+
+        return {'status': 'ok', 'log': 'route %s withdrawn'% cmd}
+
 if __name__ == '__main__':
+
     conf = {
+     'global': {
+         'tools.basic_auth.on': True,
+         'tools.basic_auth.realm': 'cherryBGP',
+         'tools.basic_auth.users': config.users,
+         'tools.basic_auth.encrypt': config.encrypt_pw,
+         },
      '/static': {
          'tools.staticdir.on': True,
          'tools.staticdir.dir': './static',
          'tools.staticdir.root': os.path.abspath(".")
-     }
+         },
     }
     
-    #webroot=CherryBGPStatus()
-    #webroot.routes=CherryBGPWebService()
     cherrypy.quickstart(CherryBGPStatus(config.rpc_url), '/', conf)

@@ -1,3 +1,11 @@
 rpc_url="http://127.0.0.1:8000/"
 
-community_map= {'Zagranica': '1234:666', 'Global': '1234:667'}
+community_map= {'Black1': ['123:669', '123:44'], 'Black2': ['1234:667', '123:44']}
+
+from md5 import md5
+
+def encrypt_pw(pw):
+    return md5(pw).hexdigest()
+
+#in production don't use encrypt_pw, enter the hash as a string :)
+users= {'user': encrypt_pw('password'), }
