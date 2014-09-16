@@ -38,6 +38,7 @@ class CherryBGPStatus(object):
         return r'''<html>
     <head>
         <title>cherryBGP</title>
+        <link href="data:image/x-icon;base64,AAABAAEAEBAQAAAAAAAoAQAAFgAAACgAAAAQAAAAIAAAAAEABAAAAAAAgAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAA6F+/AP///wAA//cAAAD/APKFGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAEVAAAAAAAAFVMgAAAAAAVTNAIgAAAAAzRAAAAAAAA0QAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//wAA//8AAAADAACABwAAgAYAAMAIAADAAAAAYAAAAIABAADwBwAA8B8AAPh/AAD8/wAA/P8AAP//AAD//wAA" rel="icon" type="image/x-icon" />
         <style type="text/css"><!--
         body { font-family: arial, helvetica, sans-serif; font-size: 14px; font-weight: normal; color: black; background: #a0bbc0;}
         a {text-decoration: none;}
