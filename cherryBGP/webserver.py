@@ -7,7 +7,7 @@ import config
 
 from util import *
 
-class CherryBGPStatus(object):
+class CherryBGP(object):
     
     def __init__(self, rpc_url):
         self.rpc_url=rpc_url
@@ -84,8 +84,11 @@ class CherryBGPStatus(object):
         $(function() {
             
         $("#blform").submit(function() {
-            // post the form values via AJAX…
-            var postdata = {dst: $("#dst").val(), ttl: $("#ttl").val(), typ: $("#typ").val()} ;
+            var dst = $("#dst").val();
+            if (!confirm('Are you sure you want to blackhole: '+dst+' ?'))
+                return false;
+                
+            var postdata = {dst: dst, ttl: $("#ttl").val(), typ: $("#typ").val()} ;
             $.post('/set_route', postdata, function(data) {
                 $("#last_command").html(data['log']);
 
@@ -258,4 +261,4 @@ if __name__ == '__main__':
          },
     }
     
-    cherrypy.quickstart(CherryBGPStatus(config.rpc_url), '/', conf)
+    cherrypy.quickstart(CherryBGP(config.rpc_url), '/', conf)
