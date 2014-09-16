@@ -24,12 +24,9 @@ class CherryBGPStatus(object):
     def index(self):
         return r'''<html>
     <head>
-        <title>AJAX with jQuery and cherrypy</title>
+        <title>cherryBGP</title>
         <style type="text/css"><!--
-        body { font-family: arial, helvetica, sans-serif; font-size: 12px; font-weight: normal; color: black; background: #a0bbc0;}
-        th,td { font-size: 14px;}
-        div, label { font-size: 14px;}
-        
+        body { font-family: arial, helvetica, sans-serif; font-size: 14px; font-weight: normal; color: black; background: #a0bbc0;}
         a {text-decoration: none;}
         th {background: #e8e8d0;}
         td {background: #c0ffc0;}
