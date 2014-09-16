@@ -35,10 +35,10 @@ def txt_to_nr(cm):
 
     print 'txt_to_nr(%s) = %s %s' % (str(cm), str(cret),str(xcret))
     
-    if cret:
+    if len(cret) > 0:
         ret.append('community [%s] ' % ' '.join(cret))
 
-    if cret:
+    if len(cret) > 0:
         ret.append('extended-community [%s] ' % ' '.join(xcret))
 
     return ' '.join(ret)

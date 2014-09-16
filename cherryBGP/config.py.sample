@@ -6,6 +6,10 @@ community_map= {'Black1': ['123:669', '123:44'], 'Black2': ['1234:667', '123:44'
 allow_prefix= ['10.0.0.0/8', ]
 ban_prefix= ['10.0.0.1/32',]
 
+
+nexthop='0.0.0.0'
+
+
 from md5 import md5
 
 def encrypt_pw(pw):

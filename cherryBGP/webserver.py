@@ -73,12 +73,15 @@ class CherryBGPStatus(object):
         u {text-decoration:none; border-bottom: 1px dotted black;}
         -->
         </style>
-        <script type="text/javascript" src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
+        <script type="text/javascript" src="/static/jquery-2.0.3.min.js"></script>
         <script type="text/javascript" src="/static/json2html.js"></script>
         <script type="text/javascript" src="/static/jquery.json2html.js"></script>
+        <!--<script type="text/javascript" src="/static/jquery.input-ip-address-control-1.0.min.js"></script>-->
+        
 
     <script type="text/javascript">
         $(function() {
+            
         $("#blform").submit(function() {
             // post the form values via AJAX…
             var postdata = {dst: $("#dst").val(), ttl: $("#ttl").val(), typ: $("#typ").val()} ;
@@ -215,7 +218,7 @@ class CherryBGPStatus(object):
             if type(typ) != list:
                 typ=[typ]
             
-            cmd='announce route %s/32 next-hop 10.0.200.1 %s\n' % (str(dst), txt_to_nr(map(str, typ)))
+            cmd='announce route %s/32 next-hop %s %s\n' % (str(dst), config.nexthop, txt_to_nr(map(str, typ)))
 
             self.rpc.api_call_noret(cmd)
         except Exception as e:
@@ -230,7 +233,7 @@ class CherryBGPStatus(object):
     def del_route(self, dst):
         try:
             dst=str(ipaddr.IPAddress(dst))
-            cmd='withdraw route %s/32 next-hop 10.0.200.1\n' % (dst)
+            cmd='withdraw route %s/32 next-hop %s\n' % (dst, config.nexthop)
             self.rpc.api_call_noret(cmd)
         except Exception as e:
             return {'status': 'error', 'log': str(e)}
