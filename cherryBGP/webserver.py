@@ -245,6 +245,11 @@ if __name__ == '__main__':
          'tools.basic_auth.realm': 'cherryBGP',
          'tools.basic_auth.users': config.users,
          'tools.basic_auth.encrypt': config.encrypt_pw,
+         'server.socket_host': '0.0.0.0',
+         'server.socket_port': 4443,
+         'server.ssl_certificate': "./cert.pem",
+         'server.ssl_private_key': "./privkey.pem",
+         'server.ssl_module': 'builtin',
          },
      '/static': {
          'tools.staticdir.on': True,
