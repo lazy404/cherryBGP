@@ -152,7 +152,6 @@ class CherryBGPStatus(object):
             
           });
         })();
-        
     </script>
     </head>
         <body>
@@ -167,17 +166,14 @@ class CherryBGPStatus(object):
         <form id="blform" action="#" method="post">
             <input type="text" size=16 id="dst" />
             <label for="dst">- IP</label><br/>
-            
             <select id=typ multiple>
               %s
             </select>
-            <label for="typ">- Blackholle types</label><br />
+            <label for="typ">- Blackhole types</label><br />
             
             <input type="submit" value="Announce"/>
         </form>
-
         <div id="last_command"></div><br>
-        
         </body>
     </html>''' % '\n'.join(['<option value="%s">%s</option>' % (t, t) for t in config.community_map.keys()])
 
