@@ -12,6 +12,19 @@ class CherryBGPStatus(object):
     def __init__(self, rpc_url):
         self.rpc_url=rpc_url
         self.rpc=xmlrpclib.ServerProxy(rpc_url)
+        self.allow_prefix=map(ipaddr.IPNetwork, config.allow_prefix) 
+        self.ban_prefix=map(ipaddr.IPNetwork, config.ban_prefix)
+
+    def allowed(self, ip):
+        for n in self.ban_prefix:
+            if ip in n:
+                return False
+
+        for n in self.allow_prefix:
+            if ip in n:
+                return True
+
+        return False
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -182,7 +195,8 @@ class CherryBGPStatus(object):
                 rt=l.split()
                 com=rt.index('community') + 1
                 dst=rt.index('next-hop') - 1
-                table.append({'dst':rt[dst].split('/')[0], 'typ': nr_to_txt(rt[com:]), 'community': ' '.join(rt[com:])})
+                comunities=filter(lambda x: x not in ('[', ']', 'extended-community'), rt[com:])
+                table.append({'dst':rt[dst].split('/')[0], 'typ': nr_to_txt(comunities), 'community': ' '.join(comunities)})
         print table
         return table
         
@@ -193,12 +207,15 @@ class CherryBGPStatus(object):
         try:
             dst=kw['dst']
             typ=kw['typ[]']
-            dst=str(ipaddr.IPAddress(dst))
-            print '  ***************** typ', typ, type(typ)
+            dst=ipaddr.IPAddress(dst)
+            
+            if not self.allowed(dst):
+                raise Exception('%s not allowed' % str(dst))
+
             if type(typ) != list:
                 typ=[typ]
             
-            cmd='announce route %s/32 next-hop 10.0.200.1 community [%s]\n' % (dst, txt_to_nr(map(str, typ)))
+            cmd='announce route %s/32 next-hop 10.0.200.1 %s\n' % (str(dst), txt_to_nr(map(str, typ)))
 
             self.rpc.api_call_noret(cmd)
         except Exception as e:

@@ -1,6 +1,10 @@
-rpc_url="http://127.0.0.1:8000/"
+#config options
+rpc_url="http://86.111.240.24:8000/"
 
-community_map= {'Black1': ['123:669', '123:44'], 'Black2': ['1234:667', '123:44']}
+community_map= {'Black1': ['123:669', '123:44'], 'Black2': ['1234:667', '123:44', 'target:130000L:666']}
+
+allow_prefix= ['10.0.0.0/8', ]
+ban_prefix= ['10.0.0.1/32',]
 
 from md5 import md5
 
