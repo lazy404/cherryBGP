@@ -162,7 +162,7 @@ class CherryBGPStatus(object):
         </table><br/><br/>
         <h3>Inject blackhole routes:</h2>
         <form id="blform" action="#" method="post">
-            <input type="text" id="dst" />
+            <input type="text" size=16 id="dst" />
             <label for="dst">- IP</label><br/>
             
             <select id=typ multiple>
