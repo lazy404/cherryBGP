@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='cherryBGP',
-    version='0.0.1',
+    version='0.0.2',
     author='Michal Grzedzicki',
     author_email='lazy@iq.pl',
     packages=['cherryBGP'],
