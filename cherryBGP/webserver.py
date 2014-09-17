@@ -241,7 +241,6 @@ class CherryBGP(object):
         return {'status': 'ok', 'log': 'route %s withdrawn'% cmd}
 
 if __name__ == '__main__':
-
     conf = {
      'global': {
          'tools.basic_auth.on': True,
@@ -249,10 +248,7 @@ if __name__ == '__main__':
          'tools.basic_auth.users': config.users,
          'tools.basic_auth.encrypt': config.encrypt_pw,
          'server.socket_host': '0.0.0.0',
-         'server.socket_port': 443,
-         'server.ssl_certificate': "./cert.pem",
-         'server.ssl_private_key': "./privkey.pem",
-         'server.ssl_module': 'builtin',
+         'server.socket_port': 8080,
          },
      '/static': {
          'tools.staticdir.on': True,
