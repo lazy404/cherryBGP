@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+# encoding: UTF-8
+
+from cherryBGP.webserver import CherryBGP
+from cherryBGP import config
+import cherrypy
+
+conf = {
+ 'global': {
+     'tools.basic_auth.on': True,
+     'tools.basic_auth.realm': 'cherryBGP',
+     'tools.basic_auth.users': config.users,
+     'tools.basic_auth.encrypt': config.encrypt_pw,
+     'server.socket_host': '0.0.0.0',
+     'server.socket_port': 443,
+     'server.ssl_certificate': config.ssl_cert,
+     'server.ssl_private_key': config.ssl_key,
+     'server.ssl_module': 'builtin',
+     },
+ '/static': {
+     'tools.staticdir.on': True,
+     'tools.staticdir.dir': './static',
+     'tools.staticdir.root': '/etc/cherryBGP',
+     },
+}
+
+cherrypy.quickstart(CherryBGP(config.rpc_url), '/', conf)
